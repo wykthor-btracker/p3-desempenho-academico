@@ -7,10 +7,11 @@ import re
 #imports
 
 #variables
-money = re.compile("^R\$\d+\.*\d*$")
+money = re.compile("^R\$\d+[\.,]*\d*$")
 #variables
 
 #classes#
+
 class node:
     def __init__(self):
         self.conns = list()
@@ -72,7 +73,10 @@ class publicacao(node):
     def __init__(self,titulo,nomeDaConf,anoDaPubl,projeto = None):
         self.titulo = titulo
         self.nomeDaConf = nomeDaConf
-        self.anoDaPubl = anoDaPubl
+        try:
+            self.anoDaPubl = datetime.strptime(anoDaPubl,"%Y")
+        except:
+            raise Exception("{} nao esta no formato YYYY".format(anoDaPubl))
         self.projeto = projeto
         if(projeto):
             if(projeto.status != "Em andamento"):
@@ -102,16 +106,19 @@ class pessoa(node):
             self.addConn(projInst,"Participa")
         else:
             raise Exception("{} nao esta em elaboracao, esta {}".format(projInst,projInst.status))
+
     def show(self):
         info = ""
-        info+="nome: {}, email:{}\n".format(self.nome,self.email)
-        projetos = sorted(self.listObjects("Participa"),key=lambda proj:proj.dataDeTermino)
+        info+="Nome: {}, E-mail:{}\n\n".format(self.nome,self.email)
+        projetos = sorted(self.listObjects("Participa"),key=lambda proj:proj.dataDeTermino,reverse=True)
         for projeto in projetos:
-            info+="projeto: {} status: {}\nData de termino: {}".format(projeto.titulo,projeto.status,projeto.dataDeTermino)
-        producoes = sorted(self.listObjects("Autor(a)"),key=lambda prod: prod.anoDaPubl)
+            info+="Projeto: {} Status: {}\nData de termino: {}\n".format(projeto.titulo,projeto.status,projeto.dataDeTermino.strftime("%d/%m/%Y"))
+        info+="\n"
+        producoes = sorted(self.listObjects("Autor(a)"),key=lambda prod: prod.anoDaPubl,reverse=True)
         for producao in producoes:
-            info+="producao: {}\nAno de publicacao: {}\n".format(producao.titulo,producao.anoDaPubl)
+            info+="Producao: {}\nAno de publicacao: {}\n\n".format(producao.titulo,producao.anoDaPubl.year)
         return info
+
 class professor(pessoa):
     def __init__(self,nome,email):
         super().__init__(nome,email)
@@ -144,15 +151,17 @@ def test():
     prof = professor("Wykthor","Wykthor.g@wgvale.com")
     aluno = alunoGrad("Algo","algo@wgvale.com")
     prof.orientarAluno(aluno)
-    pub = publicacao("Nome","Conf","Ano")
+    pub = publicacao("Nome","Conf","2018")
+    pub2 = publicacao("Nome2","Conf2","2017")
     pub.addColaborador(aluno)
+    pub2.addColaborador(aluno)
     proj = projeto("titulo","02/01/18","01/12/18","agencia","R$20.50","objetivo","descricao")
     proj.iniciar(prof)
     aluno.addProjeto(proj)
     proj.andar()
     pub.associarProjeto(proj)
     proj.concluir()
-    print(aluno.show())
+    return(aluno)
 #functions#
 
 #main#
