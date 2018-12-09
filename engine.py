@@ -161,12 +161,12 @@ def test():
     proj.andar()
     pub.associarProjeto(proj)
     proj.concluir()
-    return(aluno)
+    return(go([],aluno))
 #functions#
 
 #main#
 def main(*args, **kwargs):
-    test()
+    print(test())
     return None
 #main#
 
