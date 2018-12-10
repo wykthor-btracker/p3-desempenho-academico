@@ -3,7 +3,7 @@
 import pdb
 from datetime import datetime
 import re
-# pdb.set_trace()
+pdb.set_trace()
 #imports
 
 #variables
@@ -36,15 +36,29 @@ class node:
             if(conn==relation):
                 res.append(conn.nodeB)
         return res
+class lab(node):
+    def __init__(self):
+        super().__init__()
+
+    def findNode(self,text,relation):
+        for conn in [connection for connection in self.conns if connection==relation]:
+            values = [value for key,value in conn.nodeB.__dict__.items() if key in ["email","nome"]]
+            for value in values:
+                if(text == value):
+                    return conn.nodeB
+                elif(isinstance(value,str)):
+                    if(text in value and text != ""):
+                        return conn.nodeB
+        return None
 
 class projeto(node):
     def __init__(self,titulo,dataDeInicio,dataDeTermino,agencia,valor,objetivo,descricao):
-        self.titulo = titulo
+        self.nome = titulo
         try:
-            self.dataDeInicio = datetime.strptime(dataDeInicio,"%d/%m/%y")
-            self.dataDeTermino = datetime.strptime(dataDeTermino,"%d/%m/%y")
+            self.dataDeInicio = datetime.strptime(dataDeInicio,"%d/%m/%Y")
+            self.dataDeTermino = datetime.strptime(dataDeTermino,"%d/%m/%Y")
         except:
-            raise Exception("{} ou {} nao estao no formato dd/mm/aa".format(dataDeInicio,dataDeTermino))
+            raise Exception("{} ou {} nao estao no formato dd/mm/aaaa".format(dataDeInicio,dataDeTermino))
         if(self.dataDeInicio > self.dataDeTermino):
             raise Exception("Viagem no tempo detectada, {} acontece antes de {}".format(self.dataDeInicio,self.dataDeTermino))
         self.agencia = agencia
@@ -60,18 +74,32 @@ class projeto(node):
         if(isinstance(profInst,professor)):
             self.status = "Em elaboracao"
             self.addConn(profInst,"Coordena")
+        else:
+            raise Exception("{} não é do tipo esperado: engine.professor")
 
     def andar(self):
         if(self.findConn("Coordena")):
             self.status = "Em andamento"
+        else:
+            raise Exception("Projeto sem coordenador.")
 
     def concluir(self):
         if(self.findConn("Publica")):
             self.status = "Concluido"
 
+    def show(self):
+        info = ""
+        colab = self.listObjects("Coordena")+self.listObjects("Participa")
+        for colaborador in colab:
+            info+="Colaborador: {} Email: {}\n".format(colaborador.nome,colaborador.email)
+        producoes = sorted(self.listObjects("Publica"),key=lambda prod: prod.anoDaPubl,reverse=True)
+        for producao in producoes:
+            info+="Producao: {}\nAno de publicacao: {}\n\n".format(producao.nome,producao.anoDaPubl.year)
+        return info
+
 class publicacao(node):
     def __init__(self,titulo,nomeDaConf,anoDaPubl,projeto = None):
-        self.titulo = titulo
+        self.nome = titulo
         self.nomeDaConf = nomeDaConf
         try:
             self.anoDaPubl = datetime.strptime(anoDaPubl,"%Y")
@@ -112,11 +140,11 @@ class pessoa(node):
         info+="Nome: {}, E-mail:{}\n\n".format(self.nome,self.email)
         projetos = sorted(self.listObjects("Participa"),key=lambda proj:proj.dataDeTermino,reverse=True)
         for projeto in projetos:
-            info+="Projeto: {} Status: {}\nData de termino: {}\n".format(projeto.titulo,projeto.status,projeto.dataDeTermino.strftime("%d/%m/%Y"))
+            info+="Projeto: {} Status: {}\nData de termino: {}\n".format(projeto.nome,projeto.status,projeto.dataDeTermino.strftime("%d/%m/%Y"))
         info+="\n"
         producoes = sorted(self.listObjects("Autor(a)"),key=lambda prod: prod.anoDaPubl,reverse=True)
         for producao in producoes:
-            info+="Producao: {}\nAno de publicacao: {}\n\n".format(producao.titulo,producao.anoDaPubl.year)
+            info+="Producao: {}\nAno de publicacao: {}\n\n".format(producao.nome,producao.anoDaPubl.year)
         return info
 
 class professor(pessoa):
@@ -161,7 +189,7 @@ def test():
     proj.andar()
     pub.associarProjeto(proj)
     proj.concluir()
-    return(go([],aluno))
+    return(proj)
 #functions#
 
 #main#
