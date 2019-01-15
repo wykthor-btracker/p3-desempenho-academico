@@ -3,7 +3,7 @@
 import pdb
 from datetime import datetime
 import re
-pdb.set_trace()
+#pdb.set_trace()
 #imports
 
 #variables
