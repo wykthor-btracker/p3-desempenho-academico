@@ -62,8 +62,8 @@ class projeto(node):
         if(self.dataDeInicio > self.dataDeTermino):
             raise Exception("Viagem no tempo detectada, {} acontece antes de {}".format(self.dataDeInicio,self.dataDeTermino))
         self.agencia = agencia
-        self.valor = valor
-        if(not re.match(money,valor)):
+        self.valor = valor.lstrip().rstrip() # Remove trailing and following spaces.
+        if(not re.match(money,self.valor)):
             raise Exception("{} nao esta no formato certo: R$xx.xx".format(valor))
         self.objetivo = objetivo
         self.descricao = descricao

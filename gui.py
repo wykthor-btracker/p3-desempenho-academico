@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #imports
 import engine
-import pdb
 from functools import reduce
 #pdb.set_trace()
 #imports
@@ -54,9 +53,11 @@ def main(*args,**kwargs):
 		if choice=="1":
 			print("Diga o titulo, data de inicio(dd/mm/aaaa), data de término(dd/mm/aaaa), agencia financiadora, valor alocado(R$XX.XX), objetivo e descrição, separados por vírgula.")
 			values = input()
+			values = values.split(",")
+			values = list(map(lambda x:x.lstrip().rstrip(),values))
 			new = None
 			try:
-				new = engine.projeto(*values.split(","))
+				new = engine.projeto(*values)
 			except Exception as e:
 				print("Opa! Algo errado: {}".format(e.args[0]))
 			if(new):
@@ -235,24 +236,24 @@ def main(*args,**kwargs):
 			proj = input()
 			att = labo.findNode(proj,"projeto")
 			if(att):
+				print("titulo = {}\ndata De Inicio = {}\ndata De Termino = {}\nAgencia = {}\nValor = {}\nObjetivo = {}\nDescricao = {}\n".format(att.nome,att.dataDeInicio,att.dataDeTermino,att.agencia,att.valor,att.objetivo,att.descricao))
 				print(att.show())
 			else:
 				print("Eita! Não achei esse.")
 		elif choice=="8":
-			colabs = 0
-			totalDeProjetos = 0
-			publicacoes = 0
-			orientacoes = 0
 			colabs = labo.listObjects("pessoa")
 			projetos = labo.listObjects("projeto")
 			publicacoes = labo.listObjects("publicacao")
 			orientacoes = [colab for colab in colabs if isinstance(colab,engine.professor)]
-			orientacoes = reduce(lambda x,y:x+y,map(lambda x:len([val for val in x.conns if val=="Orienta"]),orientacoes))
+			if(orientacoes):
+				orientacoes = reduce(lambda x,y:x+y,map(lambda x:len([val for val in x.conns if val=="Orienta"]),orientacoes))
+			else:
+				orientacoes = 0
 			projetosEmElaboracao = len([proj for proj in projetos if proj.status == "Em elaboracao"])
 			projetosEmAndamento = len([proj for proj in projetos if proj.status == "Em andamento"])
 			projetosConcluidos = len([proj for proj in projetos if proj.status == "Concluido"])			
 			print("Colaboradores: {}\nProjetos: {}\nPublicacoes: {}\nOrientacoes: {}\nProjetos em elaboração: {}\nProjetos em andamento:{}\nProjetos concluidos:{}\n".format(len(colabs),len(projetos),len(publicacoes),orientacoes,projetosEmElaboracao,projetosEmAndamento,projetosConcluidos))
-		input()
+		input("Pressione enter para continuar.")
 	return None
 #main#
 if __name__ == '__main__':
